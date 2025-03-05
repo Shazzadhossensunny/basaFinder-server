@@ -38,7 +38,7 @@ const createRequest = async (payload: TRequest, user: any) => {
   // Check if the tenant already has a pending request for this listing
   const existingRequest = await Request.findOne({
     listingId: payload.listingId,
-    tenantId: user._id,
+    tenantId: user.id,
     status: REQUEST_STATUS.pending,
   });
 
@@ -50,7 +50,7 @@ const createRequest = async (payload: TRequest, user: any) => {
   }
 
   // Set the tenantId to the current user's ID
-  payload.tenantId = new mongoose.Types.ObjectId(user._id);
+  payload.tenantId = new mongoose.Types.ObjectId(user.id);
 
   const result = await Request.create(payload);
 
@@ -163,7 +163,7 @@ const getRequestById = async (id: string, user: any) => {
   // Check authorization based on user role
   if (user.role === USER_ROLE.tenant) {
     // Tenants can only view their own requests
-    if (request.tenantId._id.toString() !== user._id.toString()) {
+    if (request?.tenantId?._id.toString() !== user?.id.toString()) {
       throw new AppError(
         StatusCodes.FORBIDDEN,
         'You are not authorized to view this request',
@@ -172,10 +172,10 @@ const getRequestById = async (id: string, user: any) => {
   } else if (user.role === USER_ROLE.landlord) {
     // Landlords can only view requests for their own listings
     const listing = await Listing.findById(request.listingId);
-    if (!listing || listing.landlordId.toString() !== user._id.toString()) {
+    if (!listing || listing.landlordId.toString() !== user?.id.toString()) {
       throw new AppError(
         StatusCodes.FORBIDDEN,
-        'You are not authorized to view this request',
+        'You are not authorized to view this request hhhh',
       );
     }
   }
@@ -206,7 +206,7 @@ const updateRequestStatus = async (
   if (
     user.role !== USER_ROLE.admin &&
     (user.role !== USER_ROLE.landlord ||
-      listing.landlordId.toString() !== user._id.toString())
+      listing.landlordId.toString() !== user.id.toString())
   ) {
     throw new AppError(
       StatusCodes.FORBIDDEN,
@@ -274,7 +274,7 @@ const updatePaymentStatus = async (
   if (
     user.role !== USER_ROLE.admin &&
     (user.role !== USER_ROLE.tenant ||
-      request.tenantId.toString() !== user._id.toString())
+      request.tenantId.toString() !== user.id.toString())
   ) {
     throw new AppError(
       StatusCodes.FORBIDDEN,

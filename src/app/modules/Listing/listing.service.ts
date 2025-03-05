@@ -6,10 +6,9 @@ import { TListing } from './listing.interface';
 import { ListingSearchableFields } from './listing.constant';
 import { USER_ROLE } from '../User/user.constant';
 import mongoose from 'mongoose';
-import { TUser } from '../User/user.interface';
 
 const createListing = async (payload: TListing, user: any) => {
-  if (payload.landlordId === user._id) {
+  if (payload.landlordId === user.id) {
     throw new AppError(StatusCodes.FORBIDDEN, 'You are not authorized!');
   }
   // Ensure the user is a landlord
@@ -21,7 +20,7 @@ const createListing = async (payload: TListing, user: any) => {
   }
 
   // Set the landlordId to the current user's ID
-  payload.landlordId = new mongoose.Types.ObjectId(user._id);
+  payload.landlordId = new mongoose.Types.ObjectId(user.id);
 
   const result = await Listing.create(payload);
   return result;
@@ -83,7 +82,7 @@ const getListingById = async (id: string) => {
 const updateListing = async (
   id: string,
   payload: Partial<TListing>,
-  user: TUser,
+  user: any,
 ) => {
   const listing = await Listing.findById(id);
 
@@ -94,7 +93,7 @@ const updateListing = async (
   // Check if user is admin or the landlord of this listing
   if (
     user.role !== USER_ROLE.admin &&
-    listing.landlordId.toString() !== user._id.toString()
+    listing.landlordId.toString() !== user.id.toString()
   ) {
     throw new AppError(
       StatusCodes.FORBIDDEN,
@@ -106,7 +105,7 @@ const updateListing = async (
   return result;
 };
 
-const deleteListing = async (id: string, user: TUser) => {
+const deleteListing = async (id: string, user: any) => {
   const listing = await Listing.findById(id);
 
   if (!listing) {
@@ -116,7 +115,7 @@ const deleteListing = async (id: string, user: TUser) => {
   // Check if user is admin or the landlord of this listing
   if (
     user.role !== USER_ROLE.admin &&
-    listing.landlordId.toString() !== user._id.toString()
+    listing.landlordId.toString() !== user.id.toString()
   ) {
     throw new AppError(
       StatusCodes.FORBIDDEN,
