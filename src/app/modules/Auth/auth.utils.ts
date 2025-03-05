@@ -1,4 +1,4 @@
-import jwt, { JwtPayload, Secret, SignOptions } from 'jsonwebtoken';
+import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
 import type { StringValue } from 'ms';
 
 export const createToken = (

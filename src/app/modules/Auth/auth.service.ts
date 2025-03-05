@@ -6,6 +6,7 @@ import { createToken, verifyToken } from './auth.utils';
 import config from '../../config';
 import { User } from '../User/user.model';
 import type { StringValue } from 'ms';
+
 const loginUser = async (payload: TLoginUser) => {
   const user = await User.isUserExistsByEmail(payload.email);
   if (!user) {
