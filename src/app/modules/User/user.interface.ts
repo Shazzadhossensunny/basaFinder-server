@@ -12,6 +12,15 @@ export interface TUser {
   isActive: boolean;
   deactivatedAt?: Date;
 }
+// import { ObjectId } from 'mongoose'; this is for listing create user
+// export type TUserTokenPayload = {
+//   role: 'landlord' | 'tenant' | 'admin';
+//   email: string;
+//   userId: string;
+//   iat: number;
+//   exp: number;
+//   id: ObjectId;
+// };
 
 export type TChangePassword = {
   currentPassword: string;
