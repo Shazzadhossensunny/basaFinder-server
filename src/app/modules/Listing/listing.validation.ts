@@ -15,8 +15,8 @@ const createListingValidationSchema = z.object({
       required_error: 'Number of bedrooms is required',
     }),
     images: z.array(
-      z.string({
-        required_error: 'Image URL is required',
+      z.string().url({
+        message: 'Invalid image URL',
       }),
     ),
     isAvailable: z.boolean().optional(),
@@ -29,7 +29,7 @@ const updateListingValidationSchema = z.object({
     description: z.string().optional(),
     rent: z.number().optional(),
     bedrooms: z.number().optional(),
-    images: z.array(z.string()).optional(),
+    images: z.array(z.string().url()).optional(),
     isAvailable: z.boolean().optional(),
   }),
 });

@@ -1,12 +1,9 @@
-import { Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
-export interface SurjoPayConfig {
-  SP_ENDPOINT: string;
-  SP_USERNAME: string;
-  SP_PASSWORD: string;
-  SP_PREFIX: string;
-  SP_RETURN_URL: string;
-  SP_CANCEL_URL: string;
+export interface SurjoPayAuthResponse {
+  token: string;
+  store_id: string;
+  message: string;
 }
 
 export interface SurjoPayCustomer {
@@ -18,25 +15,46 @@ export interface SurjoPayCustomer {
   postalCode: string;
 }
 
-export interface SurjoPayAuthResponse {
-  token: string;
-  store_id: string;
-  token_type: string;
-  sp_code: string;
-  message: string;
-  ip: any;
-  expires_in: any;
+export interface SurjoPayVerificationResponse {
+  sp_code: number;
+  sp_message: string;
+  order_id: string;
+  bank_trx_id: string;
+  amount: number;
+  currency_type: string;
+  date_time: string;
+  status: string;
 }
 
+export const PAYMENT_STATUS = {
+  pending: 'pending',
+  processing: 'processing',
+  completed: 'completed',
+  failed: 'failed',
+  refunded: 'refunded',
+} as const;
+
+export type TPaymentStatus = keyof typeof PAYMENT_STATUS;
+
 export interface TPayment {
-  orderId: Types.ObjectId;
-  userId: Types.ObjectId;
+  _id: string;
+  requestId: Types.ObjectId;
+  tenantId: Types.ObjectId;
+  landlordId: Types.ObjectId;
+  listingId: Types.ObjectId;
+  transactionId?: string;
+  paymentOrderId?: string;
   amount: number;
   currency: string;
-  paymentMethod: string;
-  status: 'pending' | 'initiated' | 'success' | 'failed';
-  transactionId?: string;
-  paidAmount?: number;
-  paidAt?: Date;
-  failureReason?: string;
+  status: TPaymentStatus;
+  paymentInfo?: {
+    status: string;
+    transactionId: string;
+    amount: number;
+    currency: string;
+    paidAt: Date;
+  };
+  metadata?: Record<string, unknown>;
 }
+
+export interface PaymentModel extends Model<TPayment> {}

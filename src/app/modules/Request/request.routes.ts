@@ -1,4 +1,3 @@
-// src/modules/Request/request.routes.ts
 import express from 'express';
 import { RequestControllers } from './request.controller';
 import auth from '../../middlewares/auth';
@@ -14,6 +13,12 @@ router.post(
   auth(USER_ROLE.tenant),
   validateRequest(RequestValidation.createRequestValidationSchema),
   RequestControllers.createRequest,
+);
+
+router.post(
+  '/:requestId/payment',
+  auth(USER_ROLE.tenant),
+  RequestControllers.initiateRequestPayment,
 );
 
 router.get(

@@ -1,4 +1,3 @@
-// src/modules/Request/request.service.ts
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
@@ -8,9 +7,10 @@ import { RequestSearchableFields } from './request.constant';
 import { USER_ROLE } from '../User/user.constant';
 import { Listing } from '../Listing/listing.model';
 import mongoose from 'mongoose';
-
 import { User } from '../User/user.model';
 import { sendEmail } from '../../utils/sendMail';
+import { PaymentService } from '../Payment/payment.service';
+// import { PaymentService } from '../Payment/payment.service';
 
 const createRequest = async (payload: TRequest, user: any) => {
   // Ensure the user is a tenant
@@ -83,7 +83,7 @@ const getTenantRequests = async (
       },
       {
         path: 'tenantId',
-        select: 'name email -_id',
+        select: 'name email',
       },
     ]),
     query,
@@ -175,7 +175,7 @@ const getRequestById = async (id: string, user: any) => {
     if (!listing || listing.landlordId.toString() !== user?.id.toString()) {
       throw new AppError(
         StatusCodes.FORBIDDEN,
-        'You are not authorized to view this request hhhh',
+        'You are not authorized to view this request',
       );
     }
   }
@@ -332,6 +332,44 @@ const updatePaymentStatus = async (
   return updatedRequest;
 };
 
+const initiateRequestPayment = async (
+  requestId: string,
+  user: any,
+  req: any,
+) => {
+  // Validate requestId format
+  if (!mongoose.Types.ObjectId.isValid(requestId)) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid request ID format');
+  }
+
+  // Find the request to verify it exists before proceeding to payment
+  const request = await Request.findById(requestId);
+  if (!request) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Rental request not found');
+  }
+
+  // Verify the request is in approved status
+  if (request.status !== REQUEST_STATUS.approved) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'Only approved requests can proceed to payment',
+    );
+  }
+  // console.log('user', user.id.toString());
+  // console.log(request.tenantId.toString());
+  //!need
+  // // Verify the tenant is the one making the payment
+  // if (request.tenantId !== user.id) {
+  //   throw new AppError(
+  //     StatusCodes.FORBIDDEN,
+  //     'You can only make payments for your own requests',
+  //   );
+  // }
+
+  // This is a wrapper around the PaymentService.initiatePayment
+  return PaymentService.initiatePayment(requestId, user.id, req);
+};
+
 export const RequestServices = {
   createRequest,
   getTenantRequests,
@@ -339,4 +377,5 @@ export const RequestServices = {
   getRequestById,
   updateRequestStatus,
   updatePaymentStatus,
+  initiateRequestPayment,
 };

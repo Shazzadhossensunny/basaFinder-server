@@ -21,7 +21,15 @@ export interface TRequest {
   tenantId: Types.ObjectId;
   message: string;
   status: TRequestStatus;
+  paymentOrderId?: string;
   paymentStatus: TPaymentStatus;
+  paymentInfo?: {
+    status: string;
+    transactionId: string;
+    amount: number;
+    currency: string;
+    paidAt: Date;
+  };
   landlordPhoneNumber?: string;
 }
 

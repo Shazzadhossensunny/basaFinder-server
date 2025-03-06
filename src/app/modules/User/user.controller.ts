@@ -59,15 +59,7 @@ const toggleUserStatus = catchAsync(async (req, res) => {
     data: result,
   });
 });
-// const updateUserById = catchAsync(async (req, res) => {
-//   const updateUser = await UserServices.updateUser(req.params.id, req.body);
-//   sendResponse(res, {
-//     statusCode: StatusCodes.OK,
-//     success: true,
-//     message: 'User update successfully',
-//     data: updateUser,
-//   });
-// });
+
 const deleteUserById = catchAsync(async (req, res) => {
   const user = req.user as TUser;
   const deleteUser = await UserServices.deleteUser(req.params.id, user);

@@ -126,14 +126,6 @@ const toggleUserStatus = async (userId: string, requestUser: TUser) => {
   return updatedUser;
 };
 
-// const updateUser = async (id: string, updateData: Partial<TUser>) => {
-//   const user = await User.findByIdAndUpdate(id, updateData, { new: true });
-//   if (!user) {
-//     throw new AppError(StatusCodes.BAD_REQUEST, 'User not found');
-//   }
-//   return user;
-// };
-
 const deleteUser = async (deleteId: string, requestUser: TUser) => {
   // Check if user exists before deletion
   const user = await User.findById(deleteId);

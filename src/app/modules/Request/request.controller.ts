@@ -1,4 +1,3 @@
-// src/modules/Request/request.controller.ts
 import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
@@ -92,6 +91,23 @@ const updatePaymentStatus = catchAsync(async (req, res) => {
   });
 });
 
+const initiateRequestPayment = catchAsync(async (req, res) => {
+  const { requestId } = req.params;
+
+  const result = await RequestServices.initiateRequestPayment(
+    requestId,
+    req.user,
+    req,
+  );
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Payment initiated successfully',
+    data: result,
+  });
+});
+
 export const RequestControllers = {
   createRequest,
   getTenantRequests,
@@ -99,4 +115,5 @@ export const RequestControllers = {
   getRequestById,
   updateRequestStatus,
   updatePaymentStatus,
+  initiateRequestPayment,
 };

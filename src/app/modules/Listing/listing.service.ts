@@ -8,7 +8,7 @@ import { USER_ROLE } from '../User/user.constant';
 import mongoose from 'mongoose';
 
 const createListing = async (payload: TListing, user: any) => {
-  if (payload.landlordId === user.id) {
+  if (payload.landlordId?.toString() === user.id.toString()) {
     throw new AppError(StatusCodes.FORBIDDEN, 'You are not authorized!');
   }
   // Ensure the user is a landlord

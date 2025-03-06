@@ -1,41 +1,112 @@
-import { NextFunction, Request, Response } from 'express';
-import {
-  getAuthToken,
-  PaymentService,
-  verifyPaymentWithShurjoPay,
-} from './payment.service';
+import { NextFunction, Request as ExpressRequest, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { StatusCodes } from 'http-status-codes';
+import { PaymentService } from './payment.service';
 import AppError from '../../errors/AppError';
-import axios from 'axios';
-import { surjoPayConfig } from '../../config';
-import { Order } from '../Order/order.model';
+import { sendEmail } from '../../utils/sendMail';
+import { Request } from '../Request/request.model';
 import mongoose from 'mongoose';
 
-const initiatePayment = catchAsync(async (req: Request, res: Response) => {
-  const result = await PaymentService.initiatePayment(
-    req.body.orderId,
-    req.body.customerInfo,
-    req as any,
-  );
+const initiatePayment = catchAsync(
+  async (req: ExpressRequest, res: Response) => {
+    const { requestId } = req.params;
 
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: 'Payment initiated successfully',
-    data: result,
-  });
-});
+    const result = await PaymentService.initiatePayment(
+      requestId,
+      req.user.id,
+      req,
+    );
 
-// payment.controller.ts
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'Payment initiated successfully',
+      data: result,
+    });
+  },
+);
+
+// const handlePaymentCallback = async (
+//   req: ExpressRequest,
+//   res: Response,
+//   next: NextFunction,
+// ): Promise<void> => {
+//   try {
+//     // Robust query parsing with handling for incorrect SurjoPay formatting
+//     const rawUrl = req.url;
+//     const queryParts = rawUrl.split('?');
+//     const processedQuery: Record<string, string> = {};
+
+//     if (queryParts.length > 1) {
+//       const fullQueryString = queryParts.slice(1).join('&').replace(/\?/g, '&');
+
+//       fullQueryString.split('&').forEach((part) => {
+//         const [key, value] = part.split('=');
+//         if (key && value) {
+//           processedQuery[decodeURIComponent(key)] = decodeURIComponent(value);
+//         }
+//       });
+//     }
+
+//     let internalRequestId = processedQuery.internal_request_id || '';
+//     let spPaymentId = processedQuery.order_id || '';
+
+//     // Handle the incorrect format (internal_request_id containing order_id)
+//     if (internalRequestId.includes('?order_id=')) {
+//       const fixedParts = internalRequestId.split('?order_id=');
+//       internalRequestId = fixedParts[0];
+//       spPaymentId = fixedParts[1]; // Extract the actual order_id
+//     }
+
+//     // Early validation
+//     if (!internalRequestId || !spPaymentId) {
+//       res.status(400).json({
+//         success: false,
+//         message: 'Invalid callback: Missing request or payment ID',
+//         details: { processedQuery, rawUrl },
+//       });
+//       return;
+//     }
+
+//     // Process the payment
+//     try {
+//       const result = await PaymentService.handlePaymentSuccess(
+//         internalRequestId,
+//         spPaymentId,
+//       );
+
+//       // Redirect with success parameters
+//       res.redirect(
+//         `${process.env.FRONTEND_URL}/payment-success/${internalRequestId}?` +
+//           `status=success&` +
+//           `payment_id=${spPaymentId}`,
+//       );
+//     } catch (error: any) {
+//       console.error('Payment processing error:', error);
+
+//       // Redirect with failure parameters
+//       res.redirect(
+//         `${process.env.FRONTEND_URL}/payment-failure/${internalRequestId}?` +
+//           `status=failed&` +
+//           `error=${encodeURIComponent(error.message)}`,
+//       );
+//     }
+//   } catch (error: any) {
+//     console.error('Unexpected error in payment callback:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Internal server error during payment processing',
+//       details: { error: error.message },
+//     });
+//   }
+// };
 const handlePaymentCallback = async (
-  req: Request,
+  req: ExpressRequest,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // Robust query parsing with handling for incorrect SurjoPay formatting
     const rawUrl = req.url;
     const queryParts = rawUrl.split('?');
     const processedQuery: Record<string, string> = {};
@@ -51,76 +122,58 @@ const handlePaymentCallback = async (
       });
     }
 
-    let rawOrderId = processedQuery.internal_order_id || '';
+    let internalRequestId = processedQuery.internal_request_id || '';
     let spPaymentId = processedQuery.order_id || '';
 
-    // 🛠 Handle the incorrect format (internal_order_id containing order_id)
-    if (rawOrderId.includes('?order_id=')) {
-      const fixedParts = rawOrderId.split('?order_id=');
-      rawOrderId = fixedParts[0];
+    // Handle the incorrect format (internal_request_id containing order_id)
+    if (internalRequestId.includes('?order_id=')) {
+      const fixedParts = internalRequestId.split('?order_id=');
+      internalRequestId = fixedParts[0];
       spPaymentId = fixedParts[1]; // Extract the actual order_id
     }
 
-    // console.log('✅ Extracted Parameters:', { rawOrderId, spPaymentId });
-
     // Early validation
-    if (!rawOrderId || !spPaymentId) {
+    if (!internalRequestId || !spPaymentId) {
       res.status(400).json({
         success: false,
-        message: 'Invalid callback: Missing order or payment ID',
+        message: 'Invalid callback: Missing request or payment ID',
         details: { processedQuery, rawUrl },
       });
       return;
     }
 
-    // Find order
-    const order = await Order.findOne({ paymentOrderId: spPaymentId });
-    if (!order) {
-      res.status(404).json({
-        success: false,
-        message: 'Order not found',
-        details: { spPaymentId },
-      });
-      return;
-    }
-
-    // Verify payment
-    let verificationData;
+    // Process the payment
     try {
-      verificationData =
-        await PaymentService.verifyPaymentWithShurjoPay(spPaymentId);
-    } catch (verificationError: any) {
-      res.status(500).json({
-        success: false,
-        message: 'Payment verification failed',
-        details: { error: verificationError.message },
+      const result = await PaymentService.handlePaymentSuccess(
+        internalRequestId,
+        spPaymentId,
+      );
+
+      // Return JSON response instead of redirecting
+      res.status(200).json({
+        success: true,
+        message: 'Payment processed successfully',
+        data: {
+          requestId: internalRequestId,
+          paymentId: spPaymentId,
+          status: 'success',
+        },
       });
-      return;
+    } catch (error: any) {
+      console.error('Payment processing error:', error);
+
+      // Return JSON error response instead of redirecting
+      res.status(400).json({
+        success: false,
+        message: 'Payment processing failed',
+        error: error.message,
+        data: {
+          requestId: internalRequestId,
+          paymentId: spPaymentId,
+          status: 'failed',
+        },
+      });
     }
-
-    // Update order status
-    order.paymentStatus = 'completed';
-    order.paymentInfo = {
-      status: 'success',
-      transactionId: verificationData.bank_trx_id,
-      amount: verificationData.amount,
-      currency: 'BDT',
-      paidAt: new Date(),
-    };
-
-    await order.save();
-
-    // Redirect with success parameters
-    res.redirect(
-      `https://bike-shop-ecru.vercel.app/payment-success/${order._id}?` +
-        `status=success&` +
-        `payment_id=${spPaymentId}`,
-    );
-    // res.redirect(
-    //   `http://localhost:5173/payment-success/${order._id}?` +
-    //     `status=success&` +
-    //     `payment_id=${spPaymentId}`,
-    // );
   } catch (error: any) {
     console.error('Unexpected error in payment callback:', error);
     res.status(500).json({
@@ -131,7 +184,60 @@ const handlePaymentCallback = async (
   }
 };
 
+const verifyPayment = catchAsync(async (req: ExpressRequest, res: Response) => {
+  const { paymentOrderId } = req.body;
+
+  const verificationData =
+    await PaymentService.verifyPaymentWithShurjoPay(paymentOrderId);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Payment verification successful',
+    data: verificationData,
+  });
+});
+
+const getPaymentByRequestId = catchAsync(
+  async (req: ExpressRequest, res: Response) => {
+    const { requestId } = req.params;
+    const result = await PaymentService.getPaymentByRequestId(
+      requestId,
+      req.user.id,
+      req.user.role,
+    );
+
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'Payment information retrieved successfully',
+      data: result,
+    });
+  },
+);
+
+const getAllPaymentsByUser = catchAsync(
+  async (req: ExpressRequest, res: Response) => {
+    const result = await PaymentService.getAllPaymentsByUser(
+      req.user.id,
+      req.user.role,
+      req.query,
+    );
+
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'Payments retrieved successfully',
+      meta: result.meta,
+      data: result.result,
+    });
+  },
+);
+
 export const PaymentController = {
   initiatePayment,
   handlePaymentCallback,
+  verifyPayment,
+  getPaymentByRequestId,
+  getAllPaymentsByUser,
 };

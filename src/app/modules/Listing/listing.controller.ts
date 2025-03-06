@@ -57,7 +57,7 @@ const updateListing = catchAsync(async (req, res) => {
   const result = await ListingServices.updateListing(
     req.params.id,
     req.body,
-    req?.user?.role,
+    req?.user,
   );
 
   sendResponse(res, {
@@ -69,10 +69,7 @@ const updateListing = catchAsync(async (req, res) => {
 });
 
 const deleteListing = catchAsync(async (req, res) => {
-  const result = await ListingServices.deleteListing(
-    req.params.id,
-    req?.user?.role,
-  );
+  const result = await ListingServices.deleteListing(req.params.id, req?.user);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,

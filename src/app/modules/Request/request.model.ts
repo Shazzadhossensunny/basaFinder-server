@@ -23,10 +23,21 @@ const requestSchema = new Schema<TRequest, RequestModel>(
       enum: Object.values(REQUEST_STATUS),
       default: REQUEST_STATUS.pending,
     },
+    paymentOrderId: {
+      type: String,
+      trim: true,
+    },
     paymentStatus: {
       type: String,
       enum: Object.values(PAYMENT_STATUS),
       default: PAYMENT_STATUS.pending,
+    },
+    paymentInfo: {
+      status: String,
+      transactionId: String,
+      amount: Number,
+      currency: String,
+      paidAt: Date,
     },
     landlordPhoneNumber: {
       type: String,
