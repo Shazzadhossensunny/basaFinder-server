@@ -216,10 +216,18 @@ const updateRequestStatus = async (
 
   // Update the request
   const updateData: Partial<TRequest> = { status };
+  console.log(user);
 
-  // If the request is being approved, add the landlord's phone number
-  if (status === REQUEST_STATUS.approved && landlordPhoneNumber) {
-    updateData.landlordPhoneNumber = landlordPhoneNumber;
+  if (status === REQUEST_STATUS.approved) {
+    if (landlordPhoneNumber) {
+      updateData.landlordPhoneNumber = landlordPhoneNumber;
+    } else {
+      // Get the landlord's phone number from their profile
+      const landlord = await User.findById(user.id);
+      if (landlord && landlord.phoneNumber) {
+        updateData.landlordPhoneNumber = landlord.phoneNumber;
+      }
+    }
   }
 
   const updatedRequest = await Request.findByIdAndUpdate(id, updateData, {
