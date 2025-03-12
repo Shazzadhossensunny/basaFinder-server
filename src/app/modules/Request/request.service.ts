@@ -49,6 +49,24 @@ const createRequest = async (payload: TRequest, user: any) => {
     );
   }
 
+  // Validate move-in date is in the future
+  const moveInDate = new Date(payload.moveInDate);
+  const currentDate = new Date();
+  if (moveInDate < currentDate) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'Move-in date must be in the future',
+    );
+  }
+
+  // Ensure terms are agreed to
+  if (!payload.agreedToTerms) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'You must agree to the terms and conditions',
+    );
+  }
+
   // Set the tenantId to the current user's ID
   payload.tenantId = new mongoose.Types.ObjectId(user.id);
 
@@ -61,7 +79,9 @@ const createRequest = async (payload: TRequest, user: any) => {
       await sendEmail(
         landlord.email,
         'New Rental Request',
-        `You have received a new rental request for your property at ${listing.location}.`,
+        `You have received a new rental request for your property at ${listing.location}.
+        Move-in date: ${new Date(payload.moveInDate).toLocaleDateString()}
+        Rental duration: ${payload.rentalDuration} months`,
       );
     }
   } catch (error) {

@@ -18,6 +18,26 @@ const requestSchema = new Schema<TRequest, RequestModel>(
       type: String,
       required: [true, 'Request message is required'],
     },
+    // New fields
+    moveInDate: {
+      type: Date,
+      required: [true, 'Move-in date is required'],
+    },
+    rentalDuration: {
+      type: Number,
+      required: [true, 'Rental duration is required'],
+      min: [1, 'Rental duration must be at least 1 month'],
+    },
+    specialRequirements: {
+      type: String,
+      trim: true,
+    },
+    agreedToTerms: {
+      type: Boolean,
+      required: [true, 'You must agree to the terms and conditions'],
+      default: false,
+    },
+    // Existing fields
     status: {
       type: String,
       enum: Object.values(REQUEST_STATUS),

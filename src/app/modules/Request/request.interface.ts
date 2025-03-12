@@ -20,6 +20,10 @@ export interface TRequest {
   listingId: Types.ObjectId;
   tenantId: Types.ObjectId;
   message: string;
+  moveInDate: Date;
+  rentalDuration: number; // in months
+  specialRequirements?: string;
+  agreedToTerms: boolean;
   status: TRequestStatus;
   paymentOrderId?: string;
   paymentStatus: TPaymentStatus;
