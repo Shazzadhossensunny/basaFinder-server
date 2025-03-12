@@ -23,6 +23,11 @@ const listingSchema = new Schema<TListing, ListingModel>(
       type: [String],
       required: [true, 'At least one image is required'],
     },
+    amenities: {
+      type: [String],
+      required: [true, 'At least one amenities is required'],
+      default: [],
+    },
     landlordId: {
       type: Schema.Types.ObjectId,
       ref: 'User',

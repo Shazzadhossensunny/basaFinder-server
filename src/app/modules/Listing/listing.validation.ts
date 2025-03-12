@@ -19,6 +19,11 @@ const createListingValidationSchema = z.object({
         message: 'Invalid image URL',
       }),
     ),
+    amenities: z.array(
+      z.string({
+        required_error: 'amenities is required',
+      }),
+    ),
     isAvailable: z.boolean().optional(),
   }),
 });
@@ -30,6 +35,7 @@ const updateListingValidationSchema = z.object({
     rent: z.number().optional(),
     bedrooms: z.number().optional(),
     images: z.array(z.string().url()).optional(),
+    amenities: z.array(z.string()).optional(),
     isAvailable: z.boolean().optional(),
   }),
 });

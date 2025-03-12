@@ -7,6 +7,7 @@ export interface TListing {
   rent: number;
   bedrooms: number;
   images: string[];
+  amenities: string[];
   landlordId: Types.ObjectId;
   isAvailable: boolean;
 }
