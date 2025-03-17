@@ -7,6 +7,13 @@ const userValidationSchema = z.object({
   role: z.enum(['landlord', 'tenant', 'admin']).optional(),
 });
 
+const updateProfileValidationSchema = z.object({
+  body: z.object({
+    name: z.string().min(1, 'Name is required').optional(),
+    email: z.string().email('Invalid email').optional(),
+    phoneNumber: z.string().min(1, 'Phone number is required').optional(),
+  }),
+});
 const changePasswordValidation = z.object({
   body: z.object({
     currentPassword: z.string().min(6, 'Old password is required'),
@@ -22,6 +29,7 @@ const toggleStatusValidation = z.object({
 });
 export const UserValidation = {
   userValidationSchema,
+  updateProfileValidationSchema,
   changePasswordValidation,
   toggleStatusValidation,
 };

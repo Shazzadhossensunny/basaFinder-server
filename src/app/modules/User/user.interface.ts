@@ -3,6 +3,7 @@ import { USER_ROLE } from './user.constant';
 
 export interface TUser {
   _id: string;
+  userId: string;
   name: string;
   email: string;
   phoneNumber: string;

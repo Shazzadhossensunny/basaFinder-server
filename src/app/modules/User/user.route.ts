@@ -8,7 +8,11 @@ import { UserValidation } from './user.validation';
 const router = express.Router();
 
 router.post('/register', UserControllers.registerUser);
-router.get('/:id', UserControllers.getUserById);
+router.get(
+  '/:id',
+  auth(USER_ROLE.admin, USER_ROLE.landlord, USER_ROLE.tenant),
+  UserControllers.getUserById,
+);
 
 router.post(
   '/change-password',
@@ -19,6 +23,12 @@ router.patch(
   '/toggle-status/:id',
   auth(USER_ROLE.admin),
   UserControllers.toggleUserStatus,
+);
+router.put(
+  '/:id',
+  auth(USER_ROLE.admin, USER_ROLE.landlord, USER_ROLE.tenant),
+  validateRequest(UserValidation.updateProfileValidationSchema),
+  UserControllers.updateUserProfile,
 );
 router.delete('/:id', UserControllers.deleteUserById);
 

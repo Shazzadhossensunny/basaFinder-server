@@ -29,24 +29,24 @@ const getAllUser = async (query: Record<string, unknown>) => {
   };
 };
 
-const findUserById = async (
-  id: string,
-  requestingUser: { role: string; id: string },
-) => {
-  // Authorization check moved to service layer
+const findUserById = async (userId: string, requestingUser: TUser) => {
+  // First check if user exists
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  // Authorization check
   if (
     requestingUser.role !== USER_ROLE.admin &&
-    requestingUser.id.toString() !== id
+    requestingUser.userId !== userId
   ) {
     throw new AppError(
       StatusCodes.FORBIDDEN,
       'Access denied. You can only view your own account.',
     );
   }
-  const user = await User.findById(id);
-  if (!user) {
-    throw new AppError(StatusCodes.BAD_REQUEST, 'User not found');
-  }
+
   return user;
 };
 
@@ -126,6 +126,51 @@ const toggleUserStatus = async (userId: string, requestUser: TUser) => {
   return updatedUser;
 };
 
+const updateUserProfile = async (
+  userId: string,
+  payload: Partial<TUser>,
+  requestingUser: TUser,
+) => {
+  // Check if user exists
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  // Authorization: Admins can update any profile, others can only update their own
+  if (
+    requestingUser.role !== USER_ROLE.admin &&
+    requestingUser.userId !== userId
+  ) {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'You can only update your own profile!',
+    );
+  }
+
+  // Prevent role updates
+  if (payload.role) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Cannot update user role');
+  }
+
+  // Check if new email is unique
+  if (payload.email && payload.email !== user.email) {
+    const existingUser = await User.findOne({ email: payload.email });
+    if (existingUser) {
+      throw new AppError(StatusCodes.CONFLICT, 'Email is already in use');
+    }
+  }
+
+  // Update user
+  const updatedUser = await User.findByIdAndUpdate(userId, payload, {
+    new: true,
+    runValidators: true,
+  });
+
+  return updatedUser;
+};
+
 const deleteUser = async (deleteId: string, requestUser: TUser) => {
   // Check if user exists before deletion
   const user = await User.findById(deleteId);
@@ -153,6 +198,6 @@ export const UserServices = {
   findUserByEmail,
   changePassword,
   toggleUserStatus,
-  // updateUser,
+  updateUserProfile,
   deleteUser,
 };

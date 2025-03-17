@@ -15,15 +15,16 @@ const registerUser = catchAsync(async (req, res) => {
 });
 
 const getUserById = catchAsync(async (req, res) => {
-  const user = await UserServices.findUserById(req.params.id, {
-    role: req.user.role,
-    id: req.user.id,
-  });
+  const requestingUser = req.user as TUser;
+  const { id } = req.params;
+
+  const result = await UserServices.findUserById(id, requestingUser);
+
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: 'User is retrieved successfully',
-    data: user,
+    message: 'User retrieved successfully',
+    data: result,
   });
 });
 
@@ -72,12 +73,25 @@ const deleteUserById = catchAsync(async (req, res) => {
   });
 });
 
+const updateUserProfile = catchAsync(async (req, res) => {
+  const user = req.user as TUser;
+  const { id } = req.params;
+  const result = await UserServices.updateUserProfile(id, req.body, user);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Profile updated successfully',
+    data: result,
+  });
+});
+
 export const UserControllers = {
   registerUser,
   getAllUser,
   getUserById,
   changePassword,
   toggleUserStatus,
-  // updateUserById,
+  updateUserProfile,
   deleteUserById,
 };
