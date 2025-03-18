@@ -16,6 +16,7 @@ router.get(
 
 router.post(
   '/change-password',
+  auth(USER_ROLE.admin, USER_ROLE.landlord, USER_ROLE.tenant),
   validateRequest(UserValidation.changePasswordValidation),
   UserControllers.changePassword,
 );
@@ -30,8 +31,12 @@ router.put(
   validateRequest(UserValidation.updateProfileValidationSchema),
   UserControllers.updateUserProfile,
 );
-router.delete('/:id', UserControllers.deleteUserById);
+router.delete(
+  '/:id',
+  auth(USER_ROLE.admin, USER_ROLE.landlord, USER_ROLE.tenant),
+  UserControllers.deleteUserById,
+);
 
-router.get('/', UserControllers.getAllUser);
+router.get('/', auth(USER_ROLE.admin), UserControllers.getAllUser);
 
 export const UserRoute = router;

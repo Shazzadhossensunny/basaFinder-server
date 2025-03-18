@@ -66,7 +66,7 @@ const changePassword = async (
 
   const isPasswordMatched = await User.isPasswordMatched(
     payload.currentPassword,
-    user?.password,
+    user.password,
   );
 
   if (!isPasswordMatched) {
@@ -88,7 +88,8 @@ const changePassword = async (
       password: newHashedPassword,
     },
   );
-  return null;
+
+  return { success: true, message: 'Password updated successfully' };
 };
 
 const toggleUserStatus = async (userId: string, requestUser: TUser) => {
