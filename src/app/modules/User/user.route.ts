@@ -25,6 +25,12 @@ router.patch(
   auth(USER_ROLE.admin),
   UserControllers.toggleUserStatus,
 );
+router.patch(
+  '/change-role/:id',
+  auth(USER_ROLE.admin),
+  validateRequest(UserValidation.changeRoleValidation),
+  UserControllers.changeUserRole,
+);
 router.put(
   '/:id',
   auth(USER_ROLE.admin, USER_ROLE.landlord, USER_ROLE.tenant),

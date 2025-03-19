@@ -61,6 +61,20 @@ const toggleUserStatus = catchAsync(async (req, res) => {
   });
 });
 
+const changeUserRole = catchAsync(async (req, res) => {
+  const adminUser = req.user as TUser;
+  const { id } = req.params;
+  const { role } = req.body;
+
+  const result = await UserServices.changeUserRole(id, role, adminUser);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'User role updated successfully',
+    data: result,
+  });
+});
 const deleteUserById = catchAsync(async (req, res) => {
   const user = req.user as TUser;
   const deleteUser = await UserServices.deleteUser(req.params.id, user);
@@ -93,5 +107,6 @@ export const UserControllers = {
   changePassword,
   toggleUserStatus,
   updateUserProfile,
+  changeUserRole,
   deleteUserById,
 };

@@ -172,6 +172,46 @@ const updateUserProfile = async (
   return updatedUser;
 };
 
+const changeUserRole = async (
+  userId: string,
+  newRole: string,
+  requestingUser: TUser,
+) => {
+  // Only admin can change roles
+  if (requestingUser.role !== USER_ROLE.admin) {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'Only admin can change user roles',
+    );
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  // Prevent changing admin roles
+  if (user.role === USER_ROLE.admin) {
+    throw new AppError(StatusCodes.FORBIDDEN, 'Admin roles cannot be changed');
+  }
+
+  // Prevent self role change
+  if (user._id === requestingUser.userId) {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'You cannot change your own role',
+    );
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { role: newRole },
+    { new: true, runValidators: true },
+  );
+
+  return updatedUser;
+};
+
 const deleteUser = async (deleteId: string, requestUser: TUser) => {
   // Check if user exists before deletion
   const user = await User.findById(deleteId);
@@ -200,5 +240,6 @@ export const UserServices = {
   changePassword,
   toggleUserStatus,
   updateUserProfile,
+  changeUserRole,
   deleteUser,
 };

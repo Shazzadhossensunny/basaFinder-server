@@ -27,9 +27,16 @@ const toggleStatusValidation = z.object({
     id: z.string(),
   }),
 });
+const changeRoleValidation = z.object({
+  body: z.object({
+    role: z.enum(['landlord', 'tenant', 'admin']),
+  }),
+});
+
 export const UserValidation = {
   userValidationSchema,
   updateProfileValidationSchema,
   changePasswordValidation,
   toggleStatusValidation,
+  changeRoleValidation,
 };
