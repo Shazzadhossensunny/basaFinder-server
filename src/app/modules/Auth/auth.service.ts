@@ -47,7 +47,7 @@ const loginUser = async (payload: TLoginUser) => {
     config.jwt_refresh_secret as string,
     config.jwt_refresh_expires_in as StringValue,
   );
-  // console.log('Generated Access Token:', refreshToken);
+  // console.log('Generated refresh Token:', refreshToken);
   return {
     accessToken,
     refreshToken,

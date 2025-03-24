@@ -22,13 +22,15 @@ const loginUser = catchAsync(async (req, res) => {
     message: 'User is logged in successfully!',
     data: {
       accessToken,
+      refreshToken,
     },
   });
 });
 
 const refreshToken = catchAsync(async (req, res) => {
-  const { refreshToken } = req.cookies;
-  const result = await AuthServices.refreshToken(refreshToken);
+  // const { refreshToken } = req.cookies;
+  const { authorization } = req.headers;
+  const result = await AuthServices.refreshToken(authorization as string);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
