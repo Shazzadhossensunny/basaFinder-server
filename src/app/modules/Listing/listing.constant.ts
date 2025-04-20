@@ -1,4 +1,9 @@
-export const ListingSearchableFields = ['location', 'description'];
+export const ListingSearchableFields = [
+  'title',
+  'description',
+  'location',
+  'features',
+];
 export const ListingFilterableFields = [
   'location',
   'rent',

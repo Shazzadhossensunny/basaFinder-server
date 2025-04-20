@@ -26,11 +26,11 @@ const createListing = async (payload: TListing, user: any) => {
   return result;
 };
 
-const getAllListings = async (query: Record<string, unknown>) => {
-  const listingQuery = new QueryBuilder(
-    Listing.find().populate('landlordId', 'name email phoneNumber -_id'),
-    query,
-  )
+const getLandlordListings = async (
+  landlordId: string,
+  query: Record<string, unknown>,
+) => {
+  const listingQuery = new QueryBuilder(Listing.find({ landlordId }), query)
     .search(ListingSearchableFields)
     .filter()
     .sort()
@@ -46,11 +46,11 @@ const getAllListings = async (query: Record<string, unknown>) => {
   };
 };
 
-const getLandlordListings = async (
-  landlordId: string,
-  query: Record<string, unknown>,
-) => {
-  const listingQuery = new QueryBuilder(Listing.find({ landlordId }), query)
+const getAllListings = async (query: Record<string, unknown>) => {
+  const listingQuery = new QueryBuilder(
+    Listing.find().populate('landlordId', 'name email phoneNumber -_id'),
+    query,
+  )
     .search(ListingSearchableFields)
     .filter()
     .sort()

@@ -1,16 +1,17 @@
+// utils/QueryBuilder.ts
 import { FilterQuery, Query } from 'mongoose';
 
 class QueryBuilder<T> {
   public modelQuery: Query<T[], T>;
-  public query: Record<string, unknown>;
+  public query: Record<string, any>;
 
-  constructor(modelQuery: Query<T[], T>, query: Record<string, unknown>) {
+  constructor(modelQuery: Query<T[], T>, query: Record<string, any>) {
     this.modelQuery = modelQuery;
     this.query = query;
   }
 
   search(searchableFields: string[]) {
-    const searchTerm = this?.query?.searchTerm;
+    const searchTerm = this.query?.searchTerm;
     if (searchTerm) {
       this.modelQuery = this.modelQuery.find({
         $or: searchableFields.map(
@@ -26,30 +27,37 @@ class QueryBuilder<T> {
   }
 
   filter() {
-    const queryObj = { ...this.query }; // copy
-
-    // Filtering
+    const queryObj = { ...this.query };
     const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
-
     excludeFields.forEach((el) => delete queryObj[el]);
 
-    // Handle price range filtering
-    if (queryObj.minPrice || queryObj.maxPrice) {
-      const priceFilter: Record<string, unknown> = {};
-      if (queryObj.minPrice) {
-        priceFilter.$gte = Number(queryObj.minPrice);
-        delete queryObj.minPrice;
-      }
-      if (queryObj.maxPrice) {
-        priceFilter.$lte = Number(queryObj.maxPrice);
-        delete queryObj.maxPrice;
-      }
-      queryObj.price = priceFilter;
+    // Handle price filtering
+    if (queryObj.maxPrice) {
+      queryObj.price = { $lte: Number(queryObj.maxPrice) };
+      delete queryObj.maxPrice;
     }
-    // new up code
+
+    // Handle bedrooms filtering
+    if (queryObj.bedrooms === '4+') {
+      queryObj.bedrooms = { $gte: 4 };
+    } else if (queryObj.bedrooms) {
+      const bedroomsValue = Number(queryObj.bedrooms);
+      if (!isNaN(bedroomsValue)) {
+        queryObj.bedrooms = bedroomsValue;
+      } else {
+        delete queryObj.bedrooms;
+      }
+    }
+
+    // Handle location search
+    if (queryObj.location) {
+      queryObj.location = {
+        $regex: queryObj.location,
+        $options: 'i',
+      };
+    }
 
     this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
-
     return this;
   }
 
@@ -57,7 +65,6 @@ class QueryBuilder<T> {
     const sort =
       (this?.query?.sort as string)?.split(',')?.join(' ') || '-createdAt';
     this.modelQuery = this.modelQuery.sort(sort as string);
-
     return this;
   }
 
@@ -67,7 +74,6 @@ class QueryBuilder<T> {
     const skip = (page - 1) * limit;
 
     this.modelQuery = this.modelQuery.skip(skip).limit(limit);
-
     return this;
   }
 
@@ -78,6 +84,7 @@ class QueryBuilder<T> {
     this.modelQuery = this.modelQuery.select(fields);
     return this;
   }
+
   async countTotal() {
     const totalQueries = this.modelQuery.getFilter();
     const total = await this.modelQuery.model.countDocuments(totalQueries);
