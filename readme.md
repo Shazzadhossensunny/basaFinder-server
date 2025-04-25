@@ -2,6 +2,10 @@
 
 BasaFinder is a smart rental and housing solution connecting **tenants**, **landlords**, and **admins** through a secure and efficient platform. This is the **backend repository**, built with **Node.js**, **Express**, **MongoDB**, and **TypeScript**.
 
+## 🔗 Vercel Live Link
+
+[https://basafinder-server-next.vercel.app/](https://basafinder-server-next.vercel.app/)
+
 ## 🔗 GitHub Repository
 
 [https://github.com/Shazzadhossensunny/basaFinder-server](https://github.com/Shazzadhossensunny/basaFinder-server)
