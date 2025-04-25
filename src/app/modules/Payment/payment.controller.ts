@@ -166,7 +166,7 @@ const handlePaymentCallback = async (
       //     `payment_id=${spPaymentId}`,
       // );
       res.redirect(
-        `https://basafinder-frontend-nextjs-project-qpxcuhgt8-suunys-projects.vercel.app/paymentSuccess?` +
+        `https://basafinder-frontend-nextjs-project.vercel.app/paymentSuccess?` +
           `requestId=${internalRequestId}&` +
           `status=success&` +
           `payment_id=${spPaymentId}`,
