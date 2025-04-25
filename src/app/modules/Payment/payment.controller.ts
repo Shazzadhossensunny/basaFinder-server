@@ -150,15 +150,21 @@ const handlePaymentCallback = async (
       );
 
       // Return JSON response instead of redirecting
-      res.status(200).json({
-        success: true,
-        message: 'Payment processed successfully',
-        data: {
-          requestId: internalRequestId,
-          paymentId: spPaymentId,
-          status: 'success',
-        },
-      });
+      // res.status(200).json({
+      //   success: true,
+      //   message: 'Payment processed successfully',
+      //   data: {
+      //     requestId: internalRequestId,
+      //     paymentId: spPaymentId,
+      //     status: 'success',
+      //   },
+      // });
+      res.redirect(
+        `http://localhost:3000/paymentSuccess?` +
+          `requestId=${internalRequestId}&` +
+          `status=success&` +
+          `payment_id=${spPaymentId}`,
+      );
     } catch (error: any) {
       console.error('Payment processing error:', error);
 
