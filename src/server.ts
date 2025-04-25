@@ -15,13 +15,13 @@ async function main() {
 
 main();
 
-// Handle uncaught exceptions and unhandled rejections
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-  process.exit(1);
-});
+// Handle uncaught exceptions
+// process.on('uncaughtException', (error) => {
+//   console.error('Uncaught Exception:', error);
+//   process.exit(1);
+// });
 
-process.on('unhandledRejection', (error) => {
-  console.error('Unhandled Rejection:', error);
-  process.exit(1);
-});
+// process.on('unhandledRejection', (error) => {
+//   console.error('Unhandled Rejection:', error);
+//   process.exit(1);
+// });

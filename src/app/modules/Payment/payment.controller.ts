@@ -159,8 +159,14 @@ const handlePaymentCallback = async (
       //     status: 'success',
       //   },
       // });
+      // res.redirect(
+      //   `http://localhost:3000/paymentSuccess?` +
+      //     `requestId=${internalRequestId}&` +
+      //     `status=success&` +
+      //     `payment_id=${spPaymentId}`,
+      // );
       res.redirect(
-        `http://localhost:3000/paymentSuccess?` +
+        `https://basafinder-frontend-nextjs-project-qpxcuhgt8-suunys-projects.vercel.app/paymentSuccess?` +
           `requestId=${internalRequestId}&` +
           `status=success&` +
           `payment_id=${spPaymentId}`,

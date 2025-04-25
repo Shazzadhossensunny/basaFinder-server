@@ -11,14 +11,19 @@ const app: Application = express();
 //parsers
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: ['http://localhost:5173'], credentials: true }));
-app.use(express.urlencoded({ extended: true }));
+app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
 // app.use(
-//   cors({ origin: ['https://bike-shop-ecru.vercel.app'], credentials: true }),
+//   cors({
+//     origin: [
+//       'https://basafinder-frontend-nextjs-project-qpxcuhgt8-suunys-projects.vercel.app',
+//     ],
+//     credentials: true,
+//   }),
 // );
+app.use(express.urlencoded({ extended: true }));
+app.use(fixShurjoPayUrl);
 
 // Add this before your routes
-app.use(fixShurjoPayUrl);
 //application routes
 app.use('/api', router);
 
